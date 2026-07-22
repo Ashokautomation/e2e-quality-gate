@@ -3,10 +3,15 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   
-  // ADD THIS LINE TO GENERATE THE FOLDER!
-  reporter: [['html']], 
+  // If a test fails, run it ONE more time. If it passes, it's FLAKY!
+  retries: 1, 
   
-  // Automatically start our dummy app on port 3000 before tests run!
+  // HTML is for humans, JSON is for our custom math script
+  reporter: [
+    ['html'], 
+    ['json', { outputFile: 'test-results.json' }] // <--- THIS IS THE MAGIC LINE!
+  ],
+
   webServer: {
     command: 'npx http-server . -p 3000 -s',
     port: 3000,
