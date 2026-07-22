@@ -1,0 +1,38 @@
+name: Sanity Quality Gate
+
+# This tells GitHub: "Run this robot EVERY TIME code is pushed or a Pull Request is opened"
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Get the code from GitHub
+      - uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 3. Install dependencies
+      - run: npm ci
+
+      # 4. Install Playwright browsers
+      - run: npx playwright install --with-deps chromium
+
+      # 5. RUN ONLY SANITY TESTS! (Takes 10 seconds)
+      - name: Run Sanity Tests
+        run: npx playwright test --grep @sanity
+
+      # 6. If tests fail, upload the evidence (Trace/Screenshots)
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: sanity-failure-evidence
+          path: test-results/
+          retention-days: 7
