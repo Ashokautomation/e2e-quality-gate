@@ -1,6 +1,5 @@
-name: Sanity Quality Gate
+name: Enterprise Quality Gate
 
-# This tells GitHub: "Run this robot EVERY TIME code is pushed or a Pull Request is opened"
 on:
   push:
     branches: [ "main" ]
@@ -8,31 +7,48 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # ---------------------------------------------
+  # JOB 1: SANITY (Fast, blocks PRs)
+  # ---------------------------------------------
   sanity:
     runs-on: ubuntu-latest
     steps:
-      # 1. Get the code from GitHub
       - uses: actions/checkout@v4
-
-      # 2. Setup Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      # 3. Install dependencies
       - run: npm ci
-
-      # 4. Install Playwright browsers
       - run: npx playwright install --with-deps chromium
-
-      # 5. RUN ONLY SANITY TESTS! (Takes 10 seconds)
       - name: Run Sanity Tests
         run: npx playwright test --grep @sanity
 
-      # 6. If tests fail, upload the evidence (Trace/Screenshots)
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+  # ---------------------------------------------
+  # JOB 2: REGRESSION (Slower, only on main branch)
+  # ---------------------------------------------
+  regression:
+    needs: sanity # <--- THIS IS THE MAGIC! Regression ONLY runs if Sanity is Green!
+    runs-on: ubuntu-latest
+    # Only run full regression when code is pushed to main (merged), not on PRs
+    if: github.event_name == 'push' 
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: sanity-failure-evidence
-          path: test-results/
-          retention-days: 7
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      
+      - name: Run Full Regression
+        run: npx playwright test --grep @regression
+        
+      - name: Calculate ROI & Flakiness
+        run: node calculate-metrics.js
+        
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-report
+          path: |
+            playwright-report/
+            test-results.json
