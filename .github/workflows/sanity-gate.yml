@@ -1,4 +1,4 @@
-name: Enterprise Quality Gate
+name: Enterprise AI Quality Gate
 
 on:
   push:
@@ -23,12 +23,11 @@ jobs:
         run: npx playwright test --grep @sanity
 
   # ---------------------------------------------
-  # JOB 2: REGRESSION (Slower, only on main branch)
+  # JOB 2: REGRESSION (Slower, runs AI + Tests on main branch)
   # ---------------------------------------------
   regression:
-    needs: sanity # <--- THIS IS THE MAGIC! Regression ONLY runs if Sanity is Green!
+    needs: sanity 
     runs-on: ubuntu-latest
-    # Only run full regression when code is pushed to main (merged), not on PRs
     if: github.event_name == 'push' 
     
     steps:
@@ -39,7 +38,13 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       
-      - name: Run Full Regression
+      # ---> THE NEW AI BRAIN STEP! <---
+      - name: 🧠 AI Test Generation (Google Gemini)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node ai-generate.js
+
+      - name: Run Full Regression (Includes AI Tests)
         run: npx playwright test --grep @regression
         
       - name: Calculate ROI & Flakiness
