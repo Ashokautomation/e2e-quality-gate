@@ -7,7 +7,7 @@ test('Sanity: Homepage loads and login page is accessible', { tag: ['@sanity'] }
   await page.goto('/');
   await expect(page.locator('.logo')).toBeVisible(); // Verify homepage loaded
   await page.click("a[href*='login']");
-  await expect(page.locator('.loginFrm')).toBeVisible(); // Verify login page loaded
+  await expect(page.locator('#loginFrm')).toBeVisible(); // Verify login page loaded
 });
 
 // --- REGRESSION TESTS (Data-Driven Matrix, runs on main branch) ---

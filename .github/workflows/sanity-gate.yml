@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Run Sanity Tests
-        run: npx playwright test --grep @sanity
+        run: npx playwright test --project=chromium --grep @sanity
 
   # ---------------------------------------------
   # JOB 2: REGRESSION (Slower, runs AI + Tests on main branch)
