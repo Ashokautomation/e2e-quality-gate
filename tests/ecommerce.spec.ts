@@ -17,7 +17,7 @@ for (const userData of ecomUserDataset) {
     
     // 1. Navigate to Login Page
     await page.goto('/index.php?rt=account/login');
-    await expect(page.locator('.loginFrm')).toBeVisible();
+    await expect(page.locator('#loginFrm')).toBeVisible();
 
     // 2. Attempt Login (Data-Driven)
     await page.fill('#loginFrm_loginname', userData.username);
