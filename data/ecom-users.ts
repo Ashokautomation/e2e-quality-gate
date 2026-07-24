@@ -1,3 +1,10 @@
+
+export interface EcomUser {
+  username: string;
+  password: string;
+  productCategory: string;
+  productName: string;
+}
 export const ecomUserDataset: EcomUser[] = [
   {
     username: 'ashok.test1@gmail.com', // Your real test account
