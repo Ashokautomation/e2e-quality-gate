@@ -6,7 +6,7 @@ test('Sanity: E-commerce site is alive', { tag: ['@sanity'] }, async ({ page }) 
   // Just check if the page title contains the expected text
   // This never fails unless the site is completely dead
   await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await expect(page).toHaveTitle(/Automation Test Store/);
+  await expect(page).toHaveTitle(/A place to practice your automation skills/);
 });
 
 // --- REGRESSION MATRIX ---
