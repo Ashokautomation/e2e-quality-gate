@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { ecomUserDataset } from '../data/ecom-users';
 
-// --- SANITY TEST (Bulletproof) ---
+// --- SANITY TEST (Bulletproof against Cloudflare) ---
 test('Sanity: E-commerce site is alive', { tag: ['@sanity'] }, async ({ page }) => {
-  // Just check if the page title contains the expected text
-  // This never fails unless the site is completely dead
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  // 'networkidle' waits until Cloudflare finishes and the real page loads
+  await page.goto('/', { waitUntil: 'networkidle' });
   await expect(page).toHaveTitle(/A place to practice your automation skills/);
 });
 
