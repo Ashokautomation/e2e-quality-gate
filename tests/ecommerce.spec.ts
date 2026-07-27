@@ -32,7 +32,7 @@ for (const userData of ecomUserDataset) {
     // Wait a moment for the UI to register the item
     await page.waitForTimeout(2000);
     
-    // Verify the cart block is present
+        // Verify the cart block is present
     await expect(page.locator('.blockcart')).toBeVisible();
     
     console.log(`✅ ${userData.username} successfully added an item to the cart`);
