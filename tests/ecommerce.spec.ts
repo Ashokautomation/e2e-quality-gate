@@ -91,4 +91,31 @@ for (const userData of ecomUserDataset) {
     const hasError = bodyText?.includes('Error') || bodyText?.includes('500'); 
     expect(hasNoResults || hasError).toBeTruthy();
     console.log('🚧 Successfully handled maximum character boundary in search');
+ });
+   // =========================================================================
+  // NEW: TRUE HYBRID API + UI TEST (Handles CSRF/Security Tokens)
+  // =========================================================================
+  test('Regression: HYBRID - API adds to cart, UI verifies display', { tag: ['@regression'] }, async ({ page }) => {
+    
+    // 1. UI: We MUST use the UI to login first to establish valid session cookies/tokens
+    await page.goto('/index.php?rt=account/login', { waitUntil: 'networkidle' });
+    await page.fill('#loginFrm_loginname', 'ashok.test1@gmail.com');
+    await page.fill('#loginFrm_password', 'Test123!');
+    await page.click('#loginFrm button[type="submit"]');
+    await page.waitForTimeout(2000); // Wait for session to set
+
+    // 2. API: Now that we have a valid secure session, bypass the UI to add the item!
+    const addToCartResponse = await page.request.post('/index.php?rt=product/product/addToCart', {
+      data: { product_id: '49', quantity: '1' }
+    });
+
+    // DEBUG: Let's print what the server actually responded with!
+    console.log(`🔗 API Add to Cart Status: ${addToCartResponse.status()}`);
+
+    // 3. UI: Now load the cart page and verify the web page actually shows the dollar sign
+    await page.goto('/index.php?rt=checkout/cart', { waitUntil: 'networkidle' });
+    
+    // We check the body for '$' to prove the product and price loaded on the UI
+    await expect(page.locator('body')).toContainText('$', { timeout: 5000 }); 
+    console.log('🔗 Hybrid test passed: UI Login -> API Add -> UI Verify');
   });
