@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { ecomUserDataset } from '../data/ecom-users';
 
+// --- SANITY TEST (Bulletproof against Cloudflare in CI/CD) ---
 test('Sanity: E-commerce site is alive', { tag: ['@sanity'] }, async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
-  await expect(page).toHaveTitle(/A place to practice your automation skills/);
+  // 1. Go to the page, but don't wait for 'networkidle' (Cloudflare messes with network idle signals)
+  await page.goto('/', { waitUntil: 'load' }); 
+  
+  // 2. Wait up to 60 seconds for the REAL title to appear. 
+  // This gives Cloudflare the time it needs to verify the browser in the background!
+  await expect(page).toHaveTitle(/A place to practice your automation skills/, { timeout: 60000 });
 });
 
 for (const userData of ecomUserDataset) {
