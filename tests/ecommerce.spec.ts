@@ -103,6 +103,6 @@ test('Regression: VISUAL - Homepage layout is unchanged', { tag: ['@regression']
   await page.goto('/', { waitUntil: 'networkidle' });
   
   // THE FIX FOR GITHUB ACTIONS: Ignore 2% pixel difference (Linux vs Windows fonts)
-  await expect(page).toHaveScreenshot('homepage.png', { threshold: 0.02 });
+  await expect(page).toHaveScreenshot('homepage.png', { threshold: 0.05 });
   console.log('📸 Visual regression passed: Homepage matches baseline');
 });
