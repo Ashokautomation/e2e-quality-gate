@@ -3,14 +3,11 @@ import { ecomUserDataset } from '../data/ecom-users';
 
 // --- SANITY TEST (Bulletproof against Cloudflare in CI/CD) ---
 test('Sanity: E-commerce site is alive', { tag: ['@sanity'] }, async ({ page }) => {
-  // 1. Go to the page, but don't wait for 'networkidle' (Cloudflare messes with network idle signals)
   await page.goto('/', { waitUntil: 'load' }); 
-  
-  // 2. Wait up to 60 seconds for the REAL title to appear. 
-  // This gives Cloudflare the time it needs to verify the browser in the background!
   await expect(page).toHaveTitle(/A place to practice your automation skills/, { timeout: 60000 });
 });
 
+// --- REGRESSION MATRIX (Original 9 Tests across 3 browsers) ---
 for (const userData of ecomUserDataset) {
   test(`Regression: ${userData.username} adds product to cart`, { tag: ['@regression'] }, async ({ page }) => {
     await page.goto('/index.php?rt=account/login', { waitUntil: 'networkidle' });
@@ -25,6 +22,7 @@ for (const userData of ecomUserDataset) {
   });
 }
 
+// --- NEGATIVE TESTS ---
 test('Regression: NEGATIVE - Login with invalid credentials shows error', { tag: ['@regression'] }, async ({ page }) => {
   await page.goto('/index.php?rt=account/login', { waitUntil: 'networkidle' });
   await page.fill('#loginFrm_loginname', 'fakeuser@fail.com');
@@ -45,6 +43,7 @@ test('Regression: NEGATIVE - Login with empty fields', { tag: ['@regression'] },
   console.log('❌ Successfully caught empty login error');
 });
 
+// --- EDGE CASE TESTS ---
 test('Regression: EDGE - Login handles XSS payload safely without crashing', { tag: ['@regression'] }, async ({ page }) => {
   await page.goto('/index.php?rt=account/login', { waitUntil: 'networkidle' });
   const xssPayload = '<script>alert("XSS Hack")</script>';
@@ -81,6 +80,7 @@ test('Regression: EDGE - Search with 500+ characters handles gracefully', { tag:
   console.log('🚧 Successfully handled maximum character boundary in search');
 });
 
+// --- HYBRID API + UI TEST ---
 test('Regression: HYBRID - API adds to cart, UI verifies display', { tag: ['@regression'] }, async ({ page }) => {
   await page.goto('/index.php?rt=account/login', { waitUntil: 'networkidle' });
   await page.fill('#loginFrm_loginname', 'ashok.test1@gmail.com');
@@ -98,8 +98,11 @@ test('Regression: HYBRID - API adds to cart, UI verifies display', { tag: ['@reg
   console.log('🔗 Hybrid test passed: UI Login -> API Add -> UI Verify');
 });
 
+// --- VISUAL REGRESSION TEST ---
 test('Regression: VISUAL - Homepage layout is unchanged', { tag: ['@regression'] }, async ({ page }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
-  await expect(page).toHaveScreenshot('homepage.png');
+  
+  // THE FIX FOR GITHUB ACTIONS: Ignore 2% pixel difference (Linux vs Windows fonts)
+  await expect(page).toHaveScreenshot('homepage.png', { threshold: 0.02 });
   console.log('📸 Visual regression passed: Homepage matches baseline');
 });
